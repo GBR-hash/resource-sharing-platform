@@ -1,77 +1,102 @@
-# 资料共享平台 - 部署说明
+﻿# 云享智维 - 资料共享平台
 
-## 项目简介
+一站式资料管理与共享平台，支持文件上传、预览、下载，集成 OpsAgent 运维助手。
 
-资料共享平台是一个基于 Spring Boot + Vue 3 的竞赛项目资料共享与成果收集系统，支持资料上传、审核、下载、收藏等功能。
+## 公网地址
 
-## 环境要求
+🔗 https://101.37.118.247/resource/
 
-- **Java 17** 或更高版本
-- **MySQL 8.0** 数据库
+## 技术栈
 
-## 部署文件
+| 层级 | 技术 |
+|------|------|
+| 后端 | Java Spring Boot 2.x (:8080) + Python FastAPI OpsAgent (:8002) |
+| 前端 | Vue 3 + Element Plus + Vite |
+| 数据库 | MySQL (example_db) |
+| 存储 | 阿里云 OSS |
 
+## 本地部署
+
+### 环境要求
+
+- JDK 17+
+- Python 3.12+
+- Node.js 18+
+- MySQL 8.0+
+- Maven 3.8+
+
+### 1. 克隆项目
+
+```bash
+git clone https://github.com/GBR-hash/resource-sharing-platform.git
+cd resource-sharing-platform
 ```
-部署目录/
-├── resource-sharing-platform-1.0.0.jar   # 前后端合一的 JAR 包
-├── application.yml                       # 配置文件（需修改数据库信息）
-└── uploads/                              # 用户上传的文件存储目录
-```
 
-## 部署步骤
-
-### 1. 创建数据库
-
-登录 MySQL，执行以下 SQL 创建空数据库：
+### 2. 数据库初始化
 
 ```sql
-CREATE DATABASE example_db CHARACTER SET utf8mb4;
+CREATE DATABASE IF NOT EXISTS example_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 ```
 
-### 2. 修改配置文件
+### 3. Java 后端
 
-编辑 `application.yml`，修改数据库连接信息：
-
-```yaml
-spring:
-  datasource:
-    url: jdbc:mysql://localhost:3306/example_db?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useSSL=false
-    username: root        # 改为你的 MySQL 用户名
-    password: 1234        # 改为你的 MySQL 密码
+```bash
+# 修改 src/main/resources/application.yml 中的数据库配置
+mvn clean package -DskipTests
+java -jar target/resource-sharing-platform-1.0.0.jar
 ```
 
-### 3. 启动应用
+### 4. OpsAgent 后端
 
-确保 `application.yml` 和 `uploads/` 文件夹与 JAR 包在同一目录下，然后在当前目录下cmd窗口运行：
+```bash
+# 使用共享虚拟环境
+python -m venv venv
+source venv/bin/activate
+pip install -r OpsAgent/requirements.txt
 
-```
-java -jar resource-sharing-platform-1.0.0.jar
-```
-
-### 4. 访问系统
-
-浏览器打开：
-
-```
-http://localhost:8080
+# 配置 OpsAgent/.env
+cd OpsAgent
+uvicorn app.main:app --host 0.0.0.0 --port 8002
 ```
 
-## 默认账号
+### 5. 前端
 
-| 角色 | 用户名 | 密码 |
-|------|--------|------|
-| 管理员 | admin | admin123 |
+```bash
+cd fronted/fronted
+npm install
+npm run dev
+```
 
-## 功能说明
+访问 http://localhost:5173
 
-- **资料浏览**：首页展示所有已发布的资料，支持搜索、分类筛选、时间筛选、下载量/收藏量排序
-- **资料上传**：登录后上传资料，需管理员审核通过后才能被其他用户下载
-- **资料收藏**：登录后可以收藏感兴趣的资料
-- **资料下载**：已发布的资料可免费下载，下载量自动统计
-- **管理员后台**：资料审核、用户管理、数据统计
+## 生产部署
 
-## 注意事项
+```bash
+# 前端构建
+cd fronted/fronted && npm run build
 
-1. `uploads/` 文件夹必须与 JAR 包放在同一目录，否则上传的文件无法访问
-2. 首次启动会自动创建数据库表结构和初始数据（管理员账号、分类、竞赛类型）
-3. 如果端口 8080 被占用，可在 `application.yml` 中修改 `server.port`
+# 服务管理 (systemd)
+sudo systemctl start resource-java  # Java 后端 :8080
+sudo systemctl start ops-agent      # OpsAgent :8002
+
+# Nginx 配置示例
+# /resource/ → 前端静态文件
+# /api/      → proxy_pass :8080
+# /ops-api/  → proxy_pass :8002
+```
+
+## 项目结构
+
+```
+resource-sharing-platform/
+├── src/                    # Spring Boot 源码
+├── OpsAgent/               # Python 运维助手
+│   └── app/
+│       └── main.py
+├── fronted/fronted/        # Vue3 前端
+│   └── src/
+│       ├── views/          # 页面组件
+│       ├── router/         # 路由配置
+│       └── utils/          # 工具函数
+└── uploads/                # 本地文件存储
+```
