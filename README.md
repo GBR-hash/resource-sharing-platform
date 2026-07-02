@@ -4,7 +4,7 @@
 
 ## 公网地址
 
-🔗 https://101.37.118.247/resource/
+🔗 http://101.37.118.247/resource/
 
 ## 技术栈
 
@@ -100,3 +100,4 @@ resource-sharing-platform/
 │       └── utils/          # 工具函数
 └── uploads/                # 本地文件存储
 ```
+
