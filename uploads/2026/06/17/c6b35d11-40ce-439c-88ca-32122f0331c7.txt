@@ -1,0 +1,59 @@
+📝 树莓派与 OpenClaw 系统管理笔记
+更新时间：2026年5月2日
+地点：云南昆明
+一、 OpenClaw 服务管理核心指令
+核心逻辑：OpenClaw 是作为“用户级服务”安装的，因此必须使用 systemctl --user 命令。普通的 kill 命令无法彻底停止，因为系统守护进程（systemd）会自动将其重启。
+表格
+命令	作用	备注
+systemctl --user stop openclaw-gateway	停止服务	这是解决问题的核心。普通 kill 杀不死是因为 systemd 会自动重启它。
+systemctl --user start openclaw-gateway	启动服务	
+systemctl --user status openclaw-gateway	查看状态	比 ps 更直观，能直接看到日志输出和运行状态。
+systemctl --user enable openclaw-gateway	开机自启	
+systemctl --user disable openclaw-gateway		取消自启
+二、 系统监控与性能分析指令
+1. htop (交互式进程查看器)
+作用：比 top 更直观，带有颜色条，用于实时监控内存和 CPU 变化。
+观察记录：通过此命令看到 wayvnc 占用了 99M 内存。
+2. df -h (查看磁盘空间)
+指令拆解：
+df：Disk Free，查看磁盘剩余空间。
+-h：Human-readable，以人类易读的方式（MB/GB）显示，而不是字节块。
+输出结果详解：
+Filesystem：硬盘或分区（如 /dev/mmcblk0p2 通常指 SD 卡，/dev/sda1 通常指 SSD）。
+Size：总容量（如 58G）。
+Used：已用空间。
+Avail：可用空间（若接近 0，系统会出问题）。
+Use%：使用率（超过 90% 需清理）。
+Mounted on：挂载点（/ 是根目录，/mnt/ssd 是 SSD 挂载点）。
+场景应用：改装 NVMe SSD 后，用此命令确认 SD 卡剩余空间及 SSD 是否成功挂载。
+3. free -h (查看内存使用)
+作用：显示系统内存（Mem）使用情况。
+关键指标：
+total：总内存（如 3.95G 说明是 4GB 版本）。
+used：已用内存。
+buff/cache：缓存（Linux 会利用空闲内存做缓存，这部分在需要时可释放）。
+available：真正可用的内存。
+4. vcgencmd (树莓派专用硬件指令)
+含义：VideoCore General Command，树莓派独有的“黑魔法”工具，用于查询底层硬件状态。
+常用指令：
+vcgencmd measure_temp：查看温度（如 temp=43.3'C，非常健康）。
+vcgencmd get_mem arm：查看分配给 CPU 的内存（如 arm=1020M）。
+vcgencmd get_mem gpu：查看分配给 GPU 的内存（如 gpu=4M，纯命令行模式通常很小）。
+5. uptime (查看系统负载)
+作用：查看系统运行了多久及当前负载。
+关键数据：load average（平均负载）。
+含义：数字越小越好。
+判断标准：如果数字超过了 CPU 的核心数（树莓派通常是 4），说明系统已经很卡。
+三、 核心概念问答 (FAQ)
+Q1: openclaw-gateway 和 openclaw 的关系是什么？
+关系：组件与整体（包含与被包含）。
+解释：
+openclaw 是整个项目的总称（如“汽车”）。
+openclaw-gateway 是其中的一个具体服务组件（如“发动机”）。
+系统服务通常只给具体的组件命名，所以操作的是 ...gateway。
+Q2: 为什么要加 --user？不加行不行？
+区别：
+系统级服务 (systemctl 无参数)：给整个操作系统用，配置在 /etc/systemd/system/，需要 sudo。
+用户级服务 (systemctl --user)：只给当前用户用，配置在 ~/.config/systemd/user/，不需要 sudo。
+原因：你的截图路径显示 Loaded: .../home/gbrmyc/.config/systemd/user/...。
+结论：OpenClaw 安装在你的用户目录下。如果不加 --user，系统会去全局目录找，找不到就会报错 Unit ... could not be found。

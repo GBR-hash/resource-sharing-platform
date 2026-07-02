@@ -1,0 +1,9 @@
+﻿*.log
+target/
+.idea/
+*.iml
+node_modules/
+dist/
+__pycache__/
+*.pyc
+.env

@@ -1,0 +1,14 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Spring Boot-ResourceSharingPlatformApplication<resource-sharing-platform>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.example.resourcesharingplatform.ResourceSharingPlatformApplication",
+            "projectName": "resource-sharing-platform",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}

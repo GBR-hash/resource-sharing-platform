@@ -1,0 +1,34 @@
+📋 任务指令：Spring Boot 项目 AIOps 适配改造
+背景：
+我正在开发一个基于 LangGraph 的智能运维 Agent（SRE Incident Responder）。我现有一个 Spring Boot + Vue.js 的全栈项目。为了让 Agent 能够实时监控、诊断并修复该系统，我需要对该 Java 项目进行“可观测性”与“自动化控制”层面的改造。
+目标：
+将 Java 项目改造为标准的 MCP Server (Model Context Protocol) 或提供一套供 Agent 调用的 RESTful API，使其具备“被监控”和“被操作”的能力。
+具体改造需求如下：
+1. 引入可观测性基础设施 (Observability)
+集成 Spring Boot Actuator：
+开启 health, metrics, env, info 端点。
+配置 Prometheus 采集器 (micrometer-registry-prometheus)，暴露 JVM 内存、GC 情况、HTTP 请求延迟等指标。
+日志标准化：
+确保日志输出格式统一（JSON 格式最佳），包含 traceId 以便链路追踪。
+提供一个专门的日志查询接口（避免 Agent 直接读取服务器文件），例如：GET /api/admin/logs?level=ERROR&limit=50。
+2. 构建 Agent 专用控制接口 (Action APIs)
+Agent 需要通过 API 执行修复操作。请封装以下管理接口（如若需考虑安全性，可以试试添加简单的 Token 校验）：
+缓存管理： POST /api/admin/cache/evict?key={pattern} (用于解决数据不一致)。
+服务重启/重载： POST /api/admin/service/reload (模拟热加载或重启特定模块)。
+配置动态调整： 如果使用了 Nacos/Apollo，提供接口动态修改限流阈值或开关功能。
+数据库连接池检查： 提供一个接口返回当前 Druid/HikariCP 的连接池状态（活跃数、等待数）。
+3. 模拟故障注入机制 (Chaos Engineering Hooks)
+为了测试 Agent 的排查能力，我需要能在系统中人为制造故障。请实现一个简单的“故障注入控制器”：
+接口示例： POST /api/admin/chaos/trigger?type={latency|exception|cpu_high}
+功能：
+latency: 让指定接口随机延迟 3-10 秒。
+exception: 让指定接口随机抛出 RuntimeException。
+cpu_high: 启动一个死循环线程占用 CPU。
+4. 知识库准备 (RAG Data Source)
+Agent 需要懂这个系统的业务逻辑。请协助我梳理并导出以下文档（Markdown 格式），作为 RAG 的知识库：
+核心业务流程图/描述： 用户下单、支付、库存扣减的逻辑。
+常见错误码字典： 系统抛出的异常代码及其含义。
+部署架构图： 各个微服务/模块之间的依赖关系。
+技术要求：
+保持原有业务代码不受影响，通过 AOP 或独立的 Admin Controller 实现上述功能。
+接口设计需遵循 RESTful 规范，返回结果需包含明确的状态码和消息，方便 LLM 解析
