@@ -1,4 +1,4 @@
-﻿*.log
+*.log
 target/
 .idea/
 *.iml
@@ -7,3 +7,7 @@ dist/
 __pycache__/
 *.pyc
 .env
+uploads/
+*.jpg
+*.mp4
+monitor/__pycache__/

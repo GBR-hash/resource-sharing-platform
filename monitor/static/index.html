@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Pi Monitor</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Mono", "Menlo", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    min-height: 100dvh;
+    padding-bottom: env(safe-area-inset-bottom, 12px);
+  }
+  .stream-wrap {
+    width: 100%;
+    background: #000;
+    line-height: 0;
+  }
+  .stream-wrap img {
+    width: 100%;
+    display: block;
+    object-fit: contain;
+    max-height: 50dvh;
+  }
+  .cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    padding: 8px;
+  }
+  .card {
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 6px;
+    padding: 12px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .card .label {
+    font-size: 11px;
+    color: #8b949e;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .card .value {
+    font-size: 22px;
+    font-weight: 600;
+    color: #58a6ff;
+  }
+  .card .bar-wrap {
+    height: 3px;
+    background: #21262d;
+    border-radius: 2px;
+    margin-top: 2px;
+    overflow: hidden;
+  }
+  .card .bar-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 0.6s ease;
+  }
+  .bar-cpu  { background: #f78166; }
+  .bar-temp { background: #f0883e; }
+  .bar-mem  { background: #d2a8ff; }
+  .bar-disk { background: #7ee787; }
+  .card .detail {
+    font-size: 10px;
+    color: #6e7681;
+    margin-top: 1px;
+  }
+</style>
+</head>
+<body>
+
+<div class="stream-wrap">
+  <img id="stream" alt="Camera Stream">
+</div>
+
+<div class="cards">
+  <div class="card" id="card-cpu">
+    <span class="label">CPU</span>
+    <span class="value" id="cpu_val">--</span>
+    <span class="detail" id="cpu_temp">--</span>
+    <div class="bar-wrap"><div class="bar-fill bar-cpu" id="cpu_bar" style="width:0%"></div></div>
+  </div>
+
+  <div class="card" id="card-temp">
+    <span class="label">TEMP</span>
+    <span class="value" id="temp_val">--</span>
+    <span class="detail">&deg;C</span>
+    <div class="bar-wrap"><div class="bar-fill bar-temp" id="temp_bar" style="width:0%"></div></div>
+  </div>
+
+  <div class="card" id="card-mem">
+    <span class="label">MEMORY</span>
+    <span class="value" id="mem_val">--</span>
+    <span class="detail" id="mem_detail">-- / -- GB</span>
+    <div class="bar-wrap"><div class="bar-fill bar-mem" id="mem_bar" style="width:0%"></div></div>
+  </div>
+
+  <div class="card" id="card-disk-root">
+    <span class="label">DISK SD</span>
+    <span class="value" id="disk_root_val">--</span>
+    <span class="detail">/</span>
+    <div class="bar-wrap"><div class="bar-fill bar-disk" id="disk_root_bar" style="width:0%"></div></div>
+  </div>
+
+  <div class="card" id="card-disk-nvme">
+    <span class="label">DISK NVMe</span>
+    <span class="value" id="disk_nvme_val">--</span>
+    <span class="detail">/mnt/nvme</span>
+    <div class="bar-wrap"><div class="bar-fill bar-disk" id="disk_nvme_bar" style="width:0%"></div></div>
+  </div>
+
+  <div class="card">
+    <span class="label">UPTIME</span>
+    <span class="value" id="uptime_val">--</span>
+    <span class="detail" id="uptime_detail"></span>
+  </div>
+</div>
+
+<script>
+var BASE = "/monitor";
+var FRAME_URL = BASE + "/frame.jpg";
+var streamImg = document.getElementById("stream");
+
+(function pollFrame() {
+  var t = Date.now();
+  streamImg.onload = function() { setTimeout(pollFrame, 30); };
+  streamImg.onerror = function() { setTimeout(pollFrame, 200); };
+  streamImg.src = FRAME_URL + "?_=" + t;
+})();
+
+function fmtUptime(s) {
+  var d = Math.floor(s / 86400);
+  var h = Math.floor((s % 86400) / 3600);
+  var m = Math.floor((s % 3600) / 60);
+  if (d > 0) return d + "d " + h + "h";
+  if (h > 0) return h + "h " + m + "m";
+  return m + "m";
+}
+
+function clamp(v) { return Math.max(0, Math.min(100, v)); }
+
+function update() {
+  fetch(BASE + "/api/stats")
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      var cpu_w = clamp(d.cpu_percent);
+      document.getElementById("cpu_val").textContent = d.cpu_percent + "%";
+      document.getElementById("cpu_temp").textContent = d.cpu_temp + " °C";
+      document.getElementById("cpu_bar").style.width = cpu_w + "%";
+
+      var temp_w = clamp((d.cpu_temp / 85) * 100);
+      document.getElementById("temp_val").textContent = d.cpu_temp + "°C";
+      document.getElementById("temp_bar").style.width = temp_w + "%";
+
+      document.getElementById("mem_val").textContent = d.memory_percent + "%";
+      document.getElementById("mem_detail").textContent = d.memory_used_gb + " / " + d.memory_total_gb + " GB";
+      document.getElementById("mem_bar").style.width = clamp(d.memory_percent) + "%";
+
+      document.getElementById("disk_root_val").textContent = d.disk_root_percent + "%";
+      document.getElementById("disk_root_bar").style.width = clamp(d.disk_root_percent) + "%";
+
+      document.getElementById("disk_nvme_val").textContent = d.disk_nvme_percent + "%";
+      document.getElementById("disk_nvme_bar").style.width = clamp(d.disk_nvme_percent) + "%";
+
+      document.getElementById("uptime_val").textContent = fmtUptime(d.uptime_seconds);
+      document.getElementById("uptime_detail").textContent = d.uptime_seconds + "s";
+    })
+    .catch(function() {});
+}
+
+update();
+setInterval(update, 2000);
+</script>
+
+</body>
+</html>
