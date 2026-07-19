@@ -10,13 +10,12 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        registry.addResourceHandler("/static/**")
+        registry.addResourceHandler("/resource/**")
                 .addResourceLocations("classpath:/static/");
     }
 
     @Override
     public void addViewControllers(ViewControllerRegistry registry) {
-        // 前端路由全部转发到 index.html，由 Vue Router 处理
         registry.addViewController("/").setViewName("forward:/index.html");
         registry.addViewController("/resources").setViewName("forward:/index.html");
         registry.addViewController("/resource/**").setViewName("forward:/index.html");

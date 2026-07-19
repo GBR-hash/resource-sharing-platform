@@ -1,0 +1,1 @@
+import{t as e}from"./request-Bk5XVuk0.js";function t(t){return e({url:`/favorites/toggle/${t}`,method:`post`})}function n(){return e({url:`/favorites/my`,method:`get`})}export{t as n,n as t};

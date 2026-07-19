@@ -58,7 +58,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/favorites/**").authenticated()
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .requestMatchers("/actuator/**").permitAll()
-                .requestMatchers("/", "/index.html", "/static/**", "/assets/**", "/favicon.ico").permitAll()
+                .requestMatchers("/", "/index.html", "/static/**", "/assets/**", "/resource/**", "/favicon.ico").permitAll()
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

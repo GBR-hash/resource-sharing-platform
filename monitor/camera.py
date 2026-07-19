@@ -8,14 +8,17 @@ SOI = b'\xff\xd8'
 EOI = b'\xff\xd9'
 DEVICE = '/dev/video1'
 
+# Read camera at native 640x360, scale to 320x180, re-encode MJPEG at lower quality
 FFMPEG_CMD = [
     'ffmpeg',
     '-f', 'v4l2',
     '-input_format', 'mjpeg',
-    '-video_size', '320x180',
+    '-video_size', '640x360',
     '-framerate', '30',
     '-i', DEVICE,
-    '-c', 'copy',
+    '-vf', 'scale=320:180',
+    '-vcodec', 'mjpeg',
+    '-q:v', '10',
     '-f', 'mjpeg',
     '-',
 ]
