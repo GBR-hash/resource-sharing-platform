@@ -426,4 +426,16 @@ onMounted(() => {
 :deep(.el-upload__tip) {
   display: none;
 }
+
+@media (max-width: 768px) {
+  .upload-hero { padding: 24px 16px 20px; }
+  .upload-hero__title { font-size: 22px; gap: 8px; }
+  .upload-hero__icon { font-size: 26px; }
+  .upload-hero__subtitle { font-size: 13px; }
+  .upload-card { margin: -4px 8px 16px; padding: 20px 14px; border-radius: 10px; }
+  .form-section { margin-bottom: 20px; padding-bottom: 16px; }
+  .form-section__title { font-size: 14px; }
+  .form-actions { flex-direction: column; }
+  .form-actions .el-button { width: 100%; }
+}
 </style>

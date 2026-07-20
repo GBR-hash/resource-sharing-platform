@@ -499,4 +499,15 @@ onMounted(() => {
   margin-top: 12px;
   font-size: 15px;
 }
+
+@media (max-width: 768px) {
+  .profile-hero { padding: 24px 16px 20px; }
+  .profile-hero__content { flex-direction: column; text-align: center; gap: 12px; }
+  .profile-avatar__circle { width: 56px; height: 56px; font-size: 22px; }
+  .profile-hero__name { font-size: 22px; }
+  .profile-hero__meta { justify-content: center; flex-wrap: wrap; }
+  .profile-card { margin: -4px 8px 16px; padding: 16px 12px; border-radius: 10px; }
+  .profile-form { max-width: 100%; }
+  .styled-table :deep(.el-table__header th) { font-size: 12px; }
+}
 </style>

@@ -7,6 +7,11 @@
           <div class="header-bg__orb header-bg__orb--2"></div>
         </div>
         <div class="header-content">
+          <!-- 汉堡菜单（仅手机端） -->
+          <div class="hamburger" @click="drawerVisible = true">
+            <el-icon :size="22"><Menu /></el-icon>
+          </div>
+
           <div class="logo" @click="$router.push('/')">
             <div class="logo-icon">
               <el-icon :size="20"><FolderOpened /></el-icon>
@@ -14,7 +19,8 @@
             <span class="logo-text">资料共享平台</span>
           </div>
 
-          <div class="nav-menu">
+          <!-- 桌面端导航 -->
+          <div class="nav-menu nav-menu--desktop">
             <div class="nav-pills">
               <div
                 class="nav-pill"
@@ -100,6 +106,100 @@
       </el-main>
     </el-container>
 
+    <!-- 手机端侧滑导航抽屉 -->
+    <el-drawer
+      v-model="drawerVisible"
+      direction="ltr"
+      size="280px"
+      :with-header="false"
+      class="mobile-drawer"
+    >
+      <div class="drawer-content">
+        <div class="drawer-user" v-if="isLoggedIn">
+          <div class="drawer-avatar" :style="{ background: getAvatarColor(user.username) }">
+            {{ user.username?.charAt(0)?.toUpperCase() }}
+          </div>
+          <div class="drawer-user-info">
+            <span class="drawer-username">{{ user.username }}</span>
+            <span class="drawer-role">{{ isAdmin ? '管理员' : '普通用户' }}</span>
+          </div>
+        </div>
+        <div class="drawer-user drawer-user--guest" v-else>
+          <div class="drawer-avatar drawer-avatar--guest">
+            <el-icon :size="22"><User /></el-icon>
+          </div>
+          <span class="drawer-username">未登录</span>
+        </div>
+
+        <div class="drawer-divider"></div>
+
+        <div class="drawer-nav">
+          <div
+            class="drawer-item"
+            :class="{ 'drawer-item--active': activeMenu === '/resources' }"
+            @click="navigateTo('/resources')"
+          >
+            <el-icon><Document /></el-icon>
+            <span>资料浏览</span>
+          </div>
+          <div
+            class="drawer-item"
+            :class="{ 'drawer-item--active': activeMenu === '/upload' }"
+            @click="handleUploadClick"
+          >
+            <el-icon><Upload /></el-icon>
+            <span>上传资料</span>
+          </div>
+          <div
+            class="drawer-item"
+            :class="{ 'drawer-item--active': activeMenu === '/ops-agent' }"
+            @click="navigateTo('/ops-agent')"
+          >
+            <el-icon><Monitor /></el-icon>
+            <span>运维助手</span>
+          </div>
+          <div
+            class="drawer-item"
+            :class="{ 'drawer-item--active': activeMenu === '/monitor' }"
+            @click="navigateTo('/monitor')"
+          >
+            <el-icon><VideoCamera /></el-icon>
+            <span>系统监控</span>
+          </div>
+          <div
+            v-if="isAdmin"
+            class="drawer-item"
+            :class="{ 'drawer-item--active': activeMenu === '/admin' }"
+            @click="navigateTo('/admin')"
+          >
+            <el-icon><Setting /></el-icon>
+            <span>管理后台</span>
+          </div>
+        </div>
+
+        <div class="drawer-divider"></div>
+
+        <div class="drawer-nav">
+          <div class="drawer-item" @click="navigateTo('/profile')" v-if="isLoggedIn">
+            <el-icon><User /></el-icon>
+            <span>个人中心</span>
+          </div>
+          <div class="drawer-item drawer-item--logout" @click="handleLogout" v-if="isLoggedIn">
+            <el-icon><SwitchButton /></el-icon>
+            <span>退出登录</span>
+          </div>
+          <div class="drawer-item" @click="navigateTo('/login')" v-if="!isLoggedIn">
+            <el-icon><User /></el-icon>
+            <span>登录</span>
+          </div>
+          <div class="drawer-item" @click="navigateTo('/register')" v-if="!isLoggedIn">
+            <el-icon><Plus /></el-icon>
+            <span>注册账号</span>
+          </div>
+        </div>
+      </div>
+    </el-drawer>
+
     <!-- 未登录上传提示对话框 -->
     <el-dialog
       v-model="authDialogVisible"
@@ -138,7 +238,9 @@ import {
   SwitchButton,
   ArrowDown,
   Monitor,
-  VideoCamera
+  VideoCamera,
+  Menu,
+  Plus
 } from '@element-plus/icons-vue'
 
 const router = useRouter()
@@ -146,6 +248,7 @@ const route = useRoute()
 
 const authDialogVisible = ref(false)
 const authState = ref(0)
+const drawerVisible = ref(false)
 
 const getUserFromStorage = () => {
   try {
@@ -199,6 +302,15 @@ watch(route, () => {
   authState.value++
 })
 
+const navigateTo = (path) => {
+  drawerVisible.value = false
+  if (path === '/upload' && !isLoggedIn.value) {
+    authDialogVisible.value = true
+    return
+  }
+  router.push(path)
+}
+
 const handleUploadClick = () => {
   if (isLoggedIn.value) {
     router.push('/upload')
@@ -219,15 +331,20 @@ const goToRegister = () => {
 
 const handleCommand = (command) => {
   if (command === 'logout') {
-    localStorage.removeItem('token')
-    localStorage.removeItem('user')
-    authState.value++
-    window.dispatchEvent(new CustomEvent('auth-change'))
-    ElMessage.success('已退出登录')
-    router.push('/')
+    handleLogout()
   } else if (command === 'profile') {
     router.push('/profile')
   }
+}
+
+const handleLogout = () => {
+  localStorage.removeItem('token')
+  localStorage.removeItem('user')
+  authState.value++
+  drawerVisible.value = false
+  window.dispatchEvent(new CustomEvent('auth-change'))
+  ElMessage.success('已退出登录')
+  router.push('/')
 }
 </script>
 
@@ -292,7 +409,23 @@ const handleCommand = (command) => {
   padding: 0 32px;
   max-width: 1400px;
   margin: 0 auto;
+  gap: 12px;
 }
+
+/* ===== Hamburger ===== */
+.hamburger {
+  display: none;
+  width: 36px;
+  height: 36px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  color: #fff;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.2s;
+}
+.hamburger:hover { background: rgba(255,255,255,0.15); }
 
 /* ===== Logo ===== */
 .logo {
@@ -330,8 +463,8 @@ const handleCommand = (command) => {
   text-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
-/* ===== Nav Pills ===== */
-.nav-menu {
+/* ===== Nav Pills (桌面端) ===== */
+.nav-menu--desktop {
   flex: 1;
   display: flex;
   justify-content: center;
@@ -473,5 +606,174 @@ const handleCommand = (command) => {
 .btn-register:hover {
   transform: translateY(-1px);
   box-shadow: 0 4px 14px rgba(0,0,0,0.15);
+}
+
+/* ===== Mobile Drawer ===== */
+:deep(.mobile-drawer .el-drawer__body) {
+  padding: 0;
+}
+
+.drawer-content {
+  padding: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.drawer-user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 20px 16px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.drawer-user--guest {
+  background: #161b22;
+}
+
+.drawer-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.drawer-avatar--guest {
+  background: rgba(255,255,255,0.1);
+  color: #8b949e;
+}
+
+.drawer-user-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow: hidden;
+}
+
+.drawer-username {
+  font-size: 15px;
+  font-weight: 600;
+  color: #fff;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.drawer-role {
+  font-size: 12px;
+  color: rgba(255,255,255,0.6);
+}
+
+.drawer-divider {
+  height: 1px;
+  background: #e4e7ed;
+  margin: 0;
+}
+
+.drawer-nav {
+  padding: 8px 0;
+}
+
+.drawer-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 20px;
+  font-size: 14px;
+  color: #303133;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.drawer-item:hover {
+  background: #f5f7fa;
+}
+
+.drawer-item--active {
+  color: #667eea;
+  background: #f0f2ff;
+  font-weight: 600;
+}
+
+.drawer-item--active:hover {
+  background: #f0f2ff;
+}
+
+.drawer-item--logout {
+  color: #f56c6c;
+}
+
+.drawer-item .el-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+/* ===== 响应式 ===== */
+@media (max-width: 768px) {
+  .el-header {
+    height: 52px;
+  }
+
+  .header-content {
+    padding: 0 12px;
+  }
+
+  /* 隐藏桌面导航 */
+  .nav-menu--desktop {
+    display: none;
+  }
+
+  /* 显示汉堡图标 */
+  .hamburger {
+    display: flex;
+  }
+
+  /* Logo 缩小 */
+  .logo-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+  }
+  .logo-text {
+    font-size: 15px;
+  }
+
+  /* 去掉装饰 orb */
+  .header-bg__orb {
+    display: none;
+  }
+
+  /* 用户区精简 */
+  .username {
+    display: none;
+  }
+
+  .user-dropdown {
+    padding: 4px;
+    background: transparent;
+    border: none;
+  }
+
+  .user-dropdown:hover {
+    background: rgba(255,255,255,0.1);
+  }
+
+  .btn-login,
+  .btn-register {
+    font-size: 12px;
+    padding: 5px 12px;
+  }
+
+  /* el-dialog 移动端宽度 */
+  :deep(.auth-dialog .el-dialog) {
+    width: 90% !important;
+  }
 }
 </style>

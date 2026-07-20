@@ -120,3 +120,42 @@ import { ArrowLeft, HomeFilled } from '@element-plus/icons-vue'
   transform: translateY(-1px);
 }
 </style>
+@media (max-width: 768px) {
+  .error-bg__circle--1 {
+    width: 200px;
+    height: 200px;
+    top: -60px;
+    right: -60px;
+  }
+  .error-bg__circle--2 {
+    width: 150px;
+    height: 150px;
+    bottom: -40px;
+    left: -40px;
+  }
+  .error-card {
+    width: 90%;
+    max-width: 360px;
+    padding: 32px 24px;
+    border-radius: 16px;
+  }
+  .error-code {
+    font-size: 52px;
+  }
+  .error-title {
+    font-size: 20px;
+  }
+  .error-subtitle {
+    font-size: 14px;
+    margin-bottom: 24px;
+  }
+  .error-actions {
+    flex-direction: column;
+    gap: 10px;
+  }
+  .error-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 10px 20px;
+  }
+}

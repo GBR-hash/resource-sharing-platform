@@ -259,4 +259,17 @@ const handleLogin = async () => {
 .auth-footer a:hover {
   color: #764ba2;
 }
+
+@media (max-width: 768px) {
+  .auth-page { align-items: flex-start; padding-top: 40px; }
+  .auth-card { width: 90%; max-width: 360px; padding: 28px 20px 24px; border-radius: 16px; }
+  .auth-card__logo { width: 56px; height: 56px; border-radius: 16px; }
+  .auth-card__title { font-size: 20px; }
+  .auth-card__subtitle { font-size: 13px; }
+  .auth-form :deep(.el-input__wrapper) { height: 44px; }
+  .auth-submit { height: 44px; font-size: 15px; }
+  .auth-bg__circle--1 { width: 200px; height: 200px; top: -50px; right: -50px; }
+  .auth-bg__circle--2 { width: 150px; height: 150px; bottom: -40px; left: -40px; }
+  .auth-bg__circle--3 { width: 100px; height: 100px; }
+}
 </style>
