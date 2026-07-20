@@ -240,6 +240,10 @@ public class ResourceServiceImpl implements ResourceService {
         resourceRepository.incrementDownloadCount(id);
 
         Path filePath = fileUtil.getFilePath(resource.getFilePath());
+        if (!Files.exists(filePath)) {
+            log.warn("下载文件不存在: {}", filePath);
+            throw new BusinessException("文件不存在或已被删除");
+        }
         try {
             return Files.readAllBytes(filePath);
         } catch (IOException e) {

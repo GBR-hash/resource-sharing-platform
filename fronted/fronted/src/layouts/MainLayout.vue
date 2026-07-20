@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="main-layout">
     <el-container>
       <el-header>
@@ -39,6 +39,14 @@
               >
                 <el-icon><Monitor /></el-icon>
                 <span>运维助手</span>
+              </div>
+              <div
+                class="nav-pill"
+                :class="{ 'nav-pill--active': activeMenu === '/monitor' }"
+                @click="$router.push('/monitor')"
+              >
+                <el-icon><VideoCamera /></el-icon>
+                <span>系统监控</span>
               </div>
               <div
                 v-if="isAdmin"
@@ -84,7 +92,11 @@
         </div>
       </el-header>
       <el-main>
-        <router-view />
+        <router-view v-slot="{ Component }">
+          <keep-alive :include="['Monitor']">
+            <component :is="Component" />
+          </keep-alive>
+        </router-view>
       </el-main>
     </el-container>
 
@@ -125,7 +137,8 @@ import {
   User,
   SwitchButton,
   ArrowDown,
-  Monitor
+  Monitor,
+  VideoCamera
 } from '@element-plus/icons-vue'
 
 const router = useRouter()
@@ -178,6 +191,7 @@ const activeMenu = computed(() => {
   if (path.startsWith('/admin')) return '/admin'
   if (path.startsWith('/upload')) return '/upload'
   if (path.startsWith('/ops-agent')) return '/ops-agent'
+  if (path.startsWith('/monitor')) return '/monitor'
   return '/resources'
 })
 

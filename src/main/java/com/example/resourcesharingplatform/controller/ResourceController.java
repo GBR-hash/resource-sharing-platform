@@ -162,6 +162,10 @@ public class ResourceController {
 
         // 预览不检查状态，也不增加下载计数
         Path filePath = fileUtil.getFilePath(resource.getFilePath());
+        if (!Files.exists(filePath)) {
+            log.warn("预览文件不存在: {}", filePath);
+            return ResponseEntity.notFound().build();
+        }
         try {
             byte[] fileContent = Files.readAllBytes(filePath);
             MediaType mediaType = getMediaType(resource.getFileType());

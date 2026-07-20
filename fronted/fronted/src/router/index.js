@@ -1,4 +1,4 @@
-﻿import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHistory } from 'vue-router'
 
 const routes = [
   {
@@ -54,6 +54,11 @@ const routes = [
         name: 'AdminDashboard',
         component: () => import('@/views/admin/Dashboard.vue'),
         meta: { requiresAdmin: true }
+      },
+      {
+        path: 'monitor',
+        name: 'Monitor',
+        component: () => import('@/views/Monitor.vue')
       },
       {
         path: 'admin/users',
